@@ -231,7 +231,8 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
     transform_test = transforms.Compose([
         transforms.Lambda(lambda doc: doc.lower()),
         vocab,
-        text_transforms.PadOrTruncate(1014)
+        text_transforms.PadOrTruncate(1014),
+        transforms.Lambda(lambda doc: doc.astype(np.int64))
     ])
     test_dataset = create_test_dataset(dataset, dataset_dir, transform_test)
     num_classes = test_dataset.classes
