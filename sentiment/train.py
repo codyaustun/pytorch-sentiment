@@ -40,7 +40,7 @@ def correct(outputs, targets, top=(1, )):
 
 
 def run(epoch, model, loader, device, criterion=None, optimizer=None,
-        top=(1, 5), tracking=None, train=True):
+        top=(1, ), tracking=None, train=True):
     accuracies = [utils.AverageMeter() for _ in top]
 
     assert criterion is not None or not train, 'Need criterion to train model'
@@ -269,9 +269,9 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
         device_ids = device_ids or list(range(torch.cuda.device_count()))
         model = torch.nn.DataParallel(
             model, device_ids=device_ids)
-        num_workers = num_workers or len(device_ids)
+        num_workers = len(device_ids) if num_workers is None else num_workers
     else:
-        num_workers = num_workers or 1
+        num_workers = 0 if num_workers is None else num_workers
     print(f"using {num_workers} workers for data loading")
 
     test_loader = torch.utils.data.DataLoader(
