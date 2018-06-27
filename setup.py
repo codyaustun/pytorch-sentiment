@@ -9,8 +9,10 @@ setup(
     packages=['sentiment'],
     install_requires=[
         'pandas',
-        'numpy'
+        'numpy',
         'torch',
         'torchvision',
+        'tqdm',
+        'click'
     ]
 )
