@@ -187,7 +187,8 @@ class VDCNN(nn.Module):
         self.kmax = KMaxPool1d(k)
 
         self.fc1 = nn.Linear(in_filters * k, num_hidden)
-        self.fc2 = nn.Linear(num_hidden, num_classes)
+        self.fc2 = nn.Linear(num_hidden, num_hidden)
+        self.fc3 = nn.Linear(num_hidden, num_classes)
 
         self._initialize_weights()
 
@@ -218,7 +219,11 @@ class VDCNN(nn.Module):
         H = self.kmax(H)
         H = H.view(H.size(0), -1)
         H = self.fc1(H)
+        H = F.relu(H)
         H = self.fc2(H)
+        H = F.relu(H)
+        H = self.fc3(H)
+
         return H
 
 
