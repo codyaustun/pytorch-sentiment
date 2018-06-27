@@ -72,7 +72,7 @@ def run(epoch, model, loader, device, criterion=None, optimizer=None,
 
             top_correct = correct(outputs, targets, top=top)
             for i, count in enumerate(top_correct):
-                accuracies[i].update(count * (100. / batch_size), batch_size)
+                accuracies[i].update(count.item() * (100. / batch_size), batch_size)  # noqa: E501
 
             end = datetime.now()
             if tracking is not None:
