@@ -223,17 +223,17 @@ class VDCNN(nn.Module):
 
 
 def VDCNN9Conv(num_classes=5, shortcut=False, bias=False):
-    return VDCNN(ConvBlock, blocks=[2, 2, 2, 2], filters=[64, 128, 256, 512],
+    return VDCNN(ConvBlock, blocks=[1, 1, 1, 1], filters=[64, 128, 256, 512],
                  num_classes=num_classes, shortcut=shortcut, bias=bias)
 
 
 def VDCNN9MaxPool(num_classes=5, shortcut=False, bias=False):
-    return VDCNN(MaxPoolBlock, blocks=[2, 2, 2, 2],
+    return VDCNN(MaxPoolBlock, blocks=[1, 1, 1, 1],
                  filters=[64, 128, 256, 512],
                  num_classes=num_classes, shortcut=shortcut, bias=bias)
 
 
 def VDCNN9KMaxPool(num_classes=5, shortcut=False, bias=False):
-    return VDCNN(KMaxPoolBlock, blocks=[2, 2, 2, 2],
+    return VDCNN(KMaxPoolBlock, blocks=[1, 1, 1, 1],
                  filters=[64, 128, 256, 512],
                  num_classes=num_classes, shortcut=shortcut, bias=bias)
