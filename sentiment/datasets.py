@@ -109,8 +109,11 @@ class AmazonReviewPolarity(TextClassification):
         return self.load_data(os.path.join(self.root, 'test.csv'))
 
     def load_data(self, path):
+        # TODO: Try csv module instead of pandas
         df = pd.read_csv(path, header=None,
                          names=['rating', 'subject', 'body'])
+        df['subject'].fillna(value="", inplace=True)
+        df['body'].fillna(value="", inplace=True)
         labels = (df['rating'] - df['rating'].min()).values
         data = (df['subject'] + " " + df['body']).values
         return data, labels
@@ -120,7 +123,7 @@ class AmazonReviewPolarity(TextClassification):
         return 2
 
 
-class AmazonReviewFull(TextClassification):
+class AmazonReviewFull(AmazonReviewPolarity):
     def load_train_data(self):
         assert "amazon_review_full_csv" in self.root
         return self.load_data(os.path.join(self.root, 'train.csv'))
@@ -128,13 +131,6 @@ class AmazonReviewFull(TextClassification):
     def load_test_data(self):
         assert "amazon_review_full_csv" in self.root
         return self.load_data(os.path.join(self.root, 'test.csv'))
-
-    def load_data(self, path):
-        df = pd.read_csv(path, header=None,
-                         names=['rating', 'subject', 'body'])
-        labels = (df['rating'] - df['rating'].min()).values
-        data = (df['subject'] + " " + df['body']).values
-        return data, labels
 
     @property
     def classes(self):
