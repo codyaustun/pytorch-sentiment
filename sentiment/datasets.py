@@ -57,7 +57,7 @@ class TextClassification(data.Dataset, metaclass=ABCMeta):
         if self.train:
             doc, target = self.train_data[index], self.train_labels[index]
         else:
-            doc, target = self.test_data[index], self.test_data[index]
+            doc, target = self.test_data[index], self.test_labels[index]
 
         if self.transform is not None:
             doc = self.transform(doc)

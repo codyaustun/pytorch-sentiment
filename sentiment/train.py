@@ -52,7 +52,7 @@ def run(epoch, model, loader, device, criterion=None, optimizer=None,
     else:
         model.eval()
 
-    with torch.set_grad_enbalbed(train):
+    with torch.set_grad_enabled(train):
         start = datetime.now()
         for batch_index, (inputs, targets) in enumerate(loader):
             batch_size = targets.size(0)
@@ -171,6 +171,7 @@ def create_test_dataset(dataset, dataset_dir, transform):
         test_dataset = datasets.AmazonReviewPolarity(root=dataset_dir,
                                                      train=False,
                                                      transform=transform)
+    print(test_dataset)
     return test_dataset
 
 
@@ -183,10 +184,11 @@ def create_train_dataset(dataset, dataset_dir, transform):
         train_dataset = datasets.AmazonReviewPolarity(root=dataset_dir,
                                                       train=True,
                                                       transform=transform)
-
+    print(train_dataset)
     return train_dataset
 
 
+@click.command()
 @click.argument('dataset', type=click.Choice(DATASETS),
                 default='amazon_review_full')
 @click.option('--dataset-dir', default='./data')
@@ -219,9 +221,22 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
     timestamp = "{:.0f}".format(datetime.utcnow().timestamp())
     local_timestamp = str(datetime.now())  # noqa: F841
     dataset_dir = os.path.join(dataset_dir, dataset + "_csv")
-    num_classes = 100 if dataset == 'cifar100' else 10
     config = {k: v for k, v in locals().items()}
 
+    # Need dataset for number of classes and model defintion.
+    #   Only loading test dataset so this is faster.
+    print("Preparing {} test data".format(dataset.upper()))
+    vocab = text_transforms.Vocab("abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'\"/|_#$%ˆ&*~`+=<>()[]{} ",  # noqa: E501
+                                  offset=2, unknown=1)
+    transform_test = transforms.Compose([
+        transforms.Lambda(lambda doc: doc.lower()),
+        vocab,
+        text_transforms.PadOrTruncate(1014)
+    ])
+    test_dataset = create_test_dataset(dataset, dataset_dir, transform_test)
+    num_classes = test_dataset.classes
+
+    # Need first learning rate for optimizer
     learning_rate = learning_rates[0]
 
     use_cuda = cuda and torch.cuda.is_available()
@@ -258,18 +273,6 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
         num_workers = num_workers or 1
     print(f"using {num_workers} workers for data loading")
 
-    # load data
-    print("Preparing {} data:".format(dataset.upper()))
-    vocab = text_transforms.Vocab("abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'\"/|_#$%ˆ&*~`+=<>()[]{} ",  # noqa: E501
-                                  offset=2, unknown=1)
-    transform_test = transforms.Compose([
-        transforms.Lambda(lambda doc: doc.lower()),
-        vocab,
-        text_transforms.PadOrTruncate(1014)
-    ])
-
-    test_dataset = create_test_dataset(dataset, dataset_dir, transform_test)
-
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=batch_size, shuffle=False, num_workers=num_workers,
@@ -281,6 +284,8 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
             tracking=test_results_file, train=False)
         return
 
+    # load data
+    print("Preparing {} training data:".format(dataset.upper()))
     transform_train = transform_test
     train_dataset = create_train_dataset(dataset, dataset_dir, transform_train)
 
