@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from torch import nn
 from torch.nn import functional as F
 
@@ -172,19 +174,17 @@ class VDCNN(nn.Module):
         self.conv1 = nn.Conv1d(embedding_size, in_filters, 3,
                                padding=1, stride=1, bias=bias)
 
-        sections = []
-        for num_blocks, out_filters in zip(blocks, filters):
-            section = []
-            for _ in range(num_blocks):
+        sections = OrderedDict()
+        for section_index, (num_blocks, out_filters) in enumerate(zip(blocks, filters)):  # noqa: E501
+            section = OrderedDict()
+            for block_index in range(num_blocks):
                 block = Block(in_filters, out_filters,
                               shortcut=shortcut, bias=bias)
-                section.append(block)
+                section["block_{}".format(block_index)] = block
                 in_filters = out_filters * Block.expansion
 
-            # TODO: use sequential instead
-            sections.append(nn.ModuleList(section))
-        # TODO: use sequential instead
-        self.sections = nn.ModuleList(sections)
+            sections["section_{}".format(section_index)] = nn.Sequential(section)  # noqa: E501
+        self.sections = nn.Sequential(sections)
         self.kmax = KMaxPool1d(k)
 
         self.fc1 = nn.Linear(in_filters * k, num_hidden)
@@ -212,10 +212,7 @@ class VDCNN(nn.Module):
         H = self.conv1(H)
         # H.shape -> (batch_size, filters[0], max_length)
 
-        # TODO: use sequential instead
-        for section in self.sections:
-            for block in section:
-                H = block(H)
+        H = self.sections(H)
 
         H = self.kmax(H)
         H = H.view(H.size(0), -1)
