@@ -243,3 +243,54 @@ def VDCNN9KMaxPool(num_classes=5, shortcut=False, bias=False):
     return VDCNN(KMaxPoolBlock, blocks=[1, 1, 1, 1],
                  filters=[64, 128, 256, 512],
                  num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN17Conv(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(ConvBlock, blocks=[2, 2, 2, 2], filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN17MaxPool(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(MaxPoolBlock, blocks=[2, 2, 2, 2],
+                 filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN17KMaxPool(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(KMaxPoolBlock, blocks=[2, 2, 2, 2],
+                 filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN29Conv(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(ConvBlock, blocks=[5, 5, 2, 2], filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN29MaxPool(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(MaxPoolBlock, blocks=[5, 5, 2, 2],
+                 filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN29KMaxPool(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(KMaxPoolBlock, blocks=[5, 5, 2, 2],
+                 filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN49Conv(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(ConvBlock, blocks=[8, 8, 5, 3], filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN49MaxPool(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(MaxPoolBlock, blocks=[8, 8, 5, 3],
+                 filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
+def VDCNN49KMaxPool(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(KMaxPoolBlock, blocks=[8, 8, 5, 3],
+                 filters=[64, 128, 256, 512],
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)

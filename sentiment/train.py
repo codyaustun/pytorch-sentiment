@@ -27,6 +27,27 @@ MODELS = {
     'vdcnn9-maxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN9MaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
     'vdcnn9-kmaxpool': vdcnn.VDCNN9KMaxPool,
     'vdcnn9-kmaxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN9KMaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
+
+    'vdcnn17-conv': vdcnn.VDCNN17Conv,
+    'vdcnn17-conv-shortcut': lambda num_classes=5: vdcnn.VDCNN17Conv(num_classes=num_classes, shortcut=True),  # noqa: E501
+    'vdcnn17-maxpool': vdcnn.VDCNN17MaxPool,
+    'vdcnn17-maxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN17MaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
+    'vdcnn17-kmaxpool': vdcnn.VDCNN17KMaxPool,
+    'vdcnn17-kmaxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN17KMaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
+
+    'vdcnn29-conv': vdcnn.VDCNN29Conv,
+    'vdcnn29-conv-shortcut': lambda num_classes=5: vdcnn.VDCNN29Conv(num_classes=num_classes, shortcut=True),  # noqa: E501
+    'vdcnn29-maxpool': vdcnn.VDCNN29MaxPool,
+    'vdcnn29-maxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN29MaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
+    'vdcnn29-kmaxpool': vdcnn.VDCNN29KMaxPool,
+    'vdcnn29-kmaxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN29KMaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
+
+    'vdcnn49-conv': vdcnn.VDCNN49Conv,
+    'vdcnn49-conv-shortcut': lambda num_classes=5: vdcnn.VDCNN49Conv(num_classes=num_classes, shortcut=True),  # noqa: E501
+    'vdcnn49-maxpool': vdcnn.VDCNN49MaxPool,
+    'vdcnn49-maxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN49MaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
+    'vdcnn49-kmaxpool': vdcnn.VDCNN49KMaxPool,
+    'vdcnn49-kmaxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN49KMaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
 }
 
 
