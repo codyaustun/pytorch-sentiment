@@ -3,6 +3,7 @@ from torch.nn import functional as F
 
 
 def kmax_pooling(inputs, dim, k):
+    # TODO: just set sorted to False in topk
     indices = (inputs
                .topk(k, dim=dim)[1]  # indices of topk
                .sort(dim=dim)[0])    # preserve original order
