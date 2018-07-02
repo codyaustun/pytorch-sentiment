@@ -105,132 +105,73 @@ class TextClassification(data.Dataset, metaclass=ABCMeta):
         return self._classes
 
 
-class AmazonReviewPolarity(TextClassification):
+class XiangZhangDataset(TextClassification):
     def load_train_data(self):
-        assert "amazon_review_polarity_csv" in self.root
+        assert self.dirname in self.root
         return self.load_data(os.path.join(self.root, 'train.csv'))
 
     def load_test_data(self):
-        assert "amazon_review_polarity_csv" in self.root
+        assert self.dirname in self.root
         return self.load_data(os.path.join(self.root, 'test.csv'))
 
     def load_data(self, path):
-        # TODO: Try csv module instead of pandas
-        df = pd.read_csv(path, header=None,
-                         names=['rating', 'subject', 'body'])
-        df['subject'].fillna(value="", inplace=True)
-        df['body'].fillna(value="", inplace=True)
-        labels = (df['rating'] - df['rating'].min()).values
-        data = (df['subject'] + " " + df['body']).values
+        df = pd.read_csv(path, header=None, keep_default_na=False,
+                         names=self.columns)
+        labels = (df[self.columns[0]] - df[self.columns[0]].min()).values
+        if len(self.columns) > 2:
+            data = (df[self.columns[1]]
+                    .str
+                    .cat([df[col] for col in self.columns[2:]], sep=" ")
+                    .values)
+        else:
+            data = self.columns[1].values
         return data, labels
+
+    @property
+    @abc.abstractmethod
+    def dirname(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def columns(self):
+        pass
+
+
+class AmazonReviewPolarity(XiangZhangDataset):
+    dirname = "amazon_review_polarity_csv"
+    columns = ['rating', 'subject', 'body']
 
 
 class AmazonReviewFull(AmazonReviewPolarity):
-    def load_train_data(self):
-        assert "amazon_review_full_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "amazon_review_full_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
+    dirname = "amazon_review_full_csv"
 
 
-class AGNews(TextClassification):
-    def load_train_data(self):
-        assert "ag_news_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "ag_news_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
-
-    def load_data(self, path):
-        df = pd.read_csv(path, header=None, keep_default_na=False,
-                         names=['class_index', 'title', 'description'])
-        labels = (df['class_index'] - df['class_index'].min()).values
-        data = (df['title'] + " " + df['description']).values
-        return data, labels
+class AGNews(XiangZhangDataset):
+    dirname = "ag_news_csv"
+    columns = ['class_index', 'title', 'description']
 
 
-class DBPedia(TextClassification):
-    def load_train_data(self):
-        assert "dbpedia_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "dbpedia_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
-
-    def load_data(self, path):
-        # TODO: Try csv module instead of pandas
-        df = pd.read_csv(path, header=None, keep_default_na=False,
-                         names=['class_index', 'title', 'content'])
-        labels = (df['class_index'] - df['class_index'].min()).values
-        data = (df['title'] + " " + df['content']).values
-        return data, labels
+class DBPedia(XiangZhangDataset):
+    dirname = "dbpedia_csv"
+    columns = ['class_index', 'title', 'content']
 
 
-class SogouNews(TextClassification):
-    def load_train_data(self):
-        assert "sogou_news_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "sogou_news_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
-
-    def load_data(self, path):
-        df = pd.read_csv(path, header=None, keep_default_na=False,
-                         names=['class_index', 'title', 'content'])
-        labels = (df['class_index'] - df['class_index'].min()).values
-        data = (df['title'] + " " + df['content']).values
-        return data, labels
+class SogouNews(XiangZhangDataset):
+    dirname = "sogou_news_csv"
+    columns = ['class_index', 'title', 'content']
 
 
-class YahooAnswers(TextClassification):
-    def load_train_data(self):
-        assert "yahoo_answers_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "yahoo_answers_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
-
-    def load_data(self, path):
-        df = pd.read_csv(path, header=None, keep_default_na=False,
-                         names=['class_index', 'question_title',
-                                'question_content', 'best_answer'])
-        labels = (df['class_index'] - df['class_index'].min()).values
-        data = (df['question_title']
-                .str
-                .cat([df['question_content'],
-                      df['best_answer']], sep=" ")
-                .values)
-        return data, labels
+class YahooAnswers(XiangZhangDataset):
+    dirname = "yahoo_answers_csv"
+    columns = ['class_index', 'question_title', 'question_content',
+               'best_answer']
 
 
-class YelpReviewFull(TextClassification):
-    def load_train_data(self):
-        assert "yelp_review_full_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "yelp_review_full_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
-
-    def load_data(self, path):
-        df = pd.read_csv(path, header=None, keep_default_na=False,
-                         names=['rating', 'review'])
-        labels = (df['rating'] - df['rating'].min()).values
-        data = df['review'].values
-        return data, labels
+class YelpReviewFull(XiangZhangDataset):
+    dirname = "yelp_review_full_csv"
+    columns = ['rating', 'review']
 
 
 class YelpReviewPolarity(YelpReviewFull):
-    def load_train_data(self):
-        assert "yelp_review_polarity_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'train.csv'))
-
-    def load_test_data(self):
-        assert "yelp_review_polarity_csv" in self.root
-        return self.load_data(os.path.join(self.root, 'test.csv'))
+    dirname = "yelp_review_polarity_csv"
