@@ -7,32 +7,6 @@ import numpy as np
 import torch.utils.data as data
 
 
-class CachedDataset(data.Dataset):
-
-    def __init__(self, dataset):
-        """
-        Cache transformed data from original dataset
-        """
-        self.dataset = dataset
-        self._cache = [None] * len(dataset)
-
-    def __getitem__(self, index):
-        value = self._cache[index]
-        if value is None:
-            value = self.dataset[index]
-            self._cache[index] = value
-
-        return value
-
-    def __len__(self):
-        return len(self._cache)
-
-    def __repr__(self):
-        fmt_str = "***Cached***\n"
-        fmt_str += self.dataset.__repr__()
-        return fmt_str
-
-
 class TextClassification(data.Dataset, metaclass=ABCMeta):
 
     def __init__(self, root, train=True,
