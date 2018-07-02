@@ -3,6 +3,7 @@ import abc
 from abc import ABCMeta
 
 import pandas as pd
+import numpy as np
 import torch.utils.data as data
 
 
@@ -43,8 +44,12 @@ class TextClassification(data.Dataset, metaclass=ABCMeta):
 
         if self.train:
             self.train_data, self.train_labels = self.load_train_data()
+            assert self.train_labels.dtype == np.int64
         else:
             self.test_data, self.test_labels = self.load_test_data()
+            assert self.test_labels.dtype == np.int64
+
+        self._classes = None
 
     def __getitem__(self, index):
         """
@@ -94,9 +99,10 @@ class TextClassification(data.Dataset, metaclass=ABCMeta):
         pass
 
     @property
-    @abc.abstractmethod
     def classes(self):
-        pass
+        if self._classes is None:
+            self._classes = len(set(self.train_labels)) if self.train else len(set(self.test_labels))  # noqa: E501
+        return self._classes
 
 
 class AmazonReviewPolarity(TextClassification):
@@ -118,10 +124,6 @@ class AmazonReviewPolarity(TextClassification):
         data = (df['subject'] + " " + df['body']).values
         return data, labels
 
-    @property
-    def classes(self):
-        return 2
-
 
 class AmazonReviewFull(AmazonReviewPolarity):
     def load_train_data(self):
@@ -132,6 +134,103 @@ class AmazonReviewFull(AmazonReviewPolarity):
         assert "amazon_review_full_csv" in self.root
         return self.load_data(os.path.join(self.root, 'test.csv'))
 
-    @property
-    def classes(self):
-        return 5
+
+class AGNews(TextClassification):
+    def load_train_data(self):
+        assert "ag_news_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'train.csv'))
+
+    def load_test_data(self):
+        assert "ag_news_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'test.csv'))
+
+    def load_data(self, path):
+        df = pd.read_csv(path, header=None, keep_default_na=False,
+                         names=['class_index', 'title', 'description'])
+        labels = (df['class_index'] - df['class_index'].min()).values
+        data = (df['title'] + " " + df['description']).values
+        return data, labels
+
+
+class DBPedia(TextClassification):
+    def load_train_data(self):
+        assert "dbpedia_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'train.csv'))
+
+    def load_test_data(self):
+        assert "dbpedia_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'test.csv'))
+
+    def load_data(self, path):
+        # TODO: Try csv module instead of pandas
+        df = pd.read_csv(path, header=None, keep_default_na=False,
+                         names=['class_index', 'title', 'content'])
+        labels = (df['class_index'] - df['class_index'].min()).values
+        data = (df['title'] + " " + df['content']).values
+        return data, labels
+
+
+class SogouNews(TextClassification):
+    def load_train_data(self):
+        assert "sogou_news_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'train.csv'))
+
+    def load_test_data(self):
+        assert "sogou_news_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'test.csv'))
+
+    def load_data(self, path):
+        df = pd.read_csv(path, header=None, keep_default_na=False,
+                         names=['class_index', 'title', 'content'])
+        labels = (df['class_index'] - df['class_index'].min()).values
+        data = (df['title'] + " " + df['content']).values
+        return data, labels
+
+
+class YahooAnswers(TextClassification):
+    def load_train_data(self):
+        assert "yahoo_answers_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'train.csv'))
+
+    def load_test_data(self):
+        assert "yahoo_answers_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'test.csv'))
+
+    def load_data(self, path):
+        df = pd.read_csv(path, header=None, keep_default_na=False,
+                         names=['class_index', 'question_title',
+                                'question_content', 'best_answer'])
+        labels = (df['class_index'] - df['class_index'].min()).values
+        data = (df['question_title']
+                .str
+                .cat([df['question_content'],
+                      df['best_answer']], sep=" ")
+                .values)
+        return data, labels
+
+
+class YelpReviewFull(TextClassification):
+    def load_train_data(self):
+        assert "yelp_review_full_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'train.csv'))
+
+    def load_test_data(self):
+        assert "yelp_review_full_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'test.csv'))
+
+    def load_data(self, path):
+        df = pd.read_csv(path, header=None, keep_default_na=False,
+                         names=['rating', 'review'])
+        labels = (df['rating'] - df['rating'].min()).values
+        data = df['review'].values
+        return data, labels
+
+
+class YelpReviewPolarity(YelpReviewFull):
+    def load_train_data(self):
+        assert "yelp_review_polarity_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'train.csv'))
+
+    def load_test_data(self):
+        assert "yelp_review_polarity_csv" in self.root
+        return self.load_data(os.path.join(self.root, 'test.csv'))
