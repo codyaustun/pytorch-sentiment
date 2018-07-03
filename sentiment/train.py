@@ -15,10 +15,16 @@ from sentiment import transforms as text_transforms
 from sentiment import datasets
 from sentiment.models import vdcnn
 
-DATASETS = [
-    'amazon_review_full',
-    'amazon_review_polarity',
-]
+DATASETS = {
+    'amazon_review_full': datasets.AmazonReviewFull,
+    'amazon_review_polarity': datasets.AmazonReviewPolarity,
+    'ag_news': datasets.AGNews,
+    'dbpedia': datasets.DBPedia,
+    'sogou_news': datasets.SogouNews,
+    'yahoo_answers': datasets.YahooAnswers,
+    'yelp_review_full': datasets.YelpReviewFull,
+    'yelp_review_polarity': datasets.YelpReviewPolarity,
+}
 
 MODELS = {
     'vdcnn9-conv': vdcnn.VDCNN9Conv,
@@ -184,33 +190,21 @@ def create_graph(arch, timestamp, optimizer, restore,
 
 
 def create_test_dataset(dataset, dataset_dir, transform):
-    if dataset == 'amazon_review_full':
-        test_dataset = datasets.AmazonReviewFull(root=dataset_dir,
-                                                 train=False,
-                                                 transform=transform)
-    elif dataset == 'amazon_review_polarity':
-        test_dataset = datasets.AmazonReviewPolarity(root=dataset_dir,
-                                                     train=False,
-                                                     transform=transform)
+    test_dataset = DATASETS[dataset](root=dataset_dir, train=False,
+                                     transform=transform)
     print(test_dataset)
     return test_dataset
 
 
 def create_train_dataset(dataset, dataset_dir, transform):
-    if dataset == 'amazon_review_full':
-        train_dataset = datasets.AmazonReviewFull(root=dataset_dir,
-                                                  train=True,
-                                                  transform=transform)
-    elif dataset == 'amazon_review_polarity':
-        train_dataset = datasets.AmazonReviewPolarity(root=dataset_dir,
-                                                      train=True,
-                                                      transform=transform)
+    train_dataset = DATASETS[dataset](root=dataset_dir, train=True,
+                                      transform=transform)
     print(train_dataset)
     return train_dataset
 
 
 @click.command()
-@click.argument('dataset', type=click.Choice(DATASETS),
+@click.argument('dataset', type=click.Choice(DATASETS.keys()),
                 default='amazon_review_full')
 @click.option('--dataset-dir', default='./data')
 @click.option('--checkpoint', '-c', type=click.Choice(['best', 'all', 'last']),
