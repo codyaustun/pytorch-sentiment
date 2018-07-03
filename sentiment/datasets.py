@@ -98,7 +98,7 @@ class XiangZhangDataset(TextClassification):
                     .cat([df[col] for col in self.columns[2:]], sep=" ")
                     .values)
         else:
-            data = self.columns[1].values
+            data = df[self.columns[1]].values
         return data, labels
 
     @property
