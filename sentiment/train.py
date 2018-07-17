@@ -203,6 +203,58 @@ def create_train_dataset(dataset, dataset_dir, transform):
     return train_dataset
 
 
+def _train(model, optimizer, criterion, device,
+           train_loader, valid_loader, test_loader,
+           start_epoch, epochs, learning_rates,
+           track_test_acc, checkpoint, best_accuracy, run_dir, arch):
+    train_results_file = os.path.join(run_dir, 'train_results.csv')
+    valid_results_file = os.path.join(run_dir, 'valid_results.csv')
+    test_results_file = os.path.join(run_dir, 'test_results.csv')
+
+    for nepochs, learning_rate in zip(epochs, learning_rates):
+        end_epoch = start_epoch + nepochs
+        for group in optimizer.param_groups:
+            group['lr'] = learning_rate
+        _lr_optimizer = utils.get_learning_rate(optimizer)
+        if _lr_optimizer is not None:
+            print('Learning rate set to {}'.format(_lr_optimizer))
+            assert _lr_optimizer == learning_rate
+
+        for epoch in range(start_epoch, end_epoch):
+            run(epoch, model, train_loader, device, criterion, optimizer,
+                tracking=train_results_file, train=True)
+
+            valid_acc = run(epoch, model, valid_loader, device,
+                            tracking=valid_results_file, train=False)
+
+            if valid_loader != test_loader and track_test_acc:
+                run(epoch, model, test_loader, device,
+                    tracking=test_results_file, train=False)
+
+            is_best = valid_acc > best_accuracy
+            last_epoch = epoch == (end_epoch - 1)
+            if is_best or checkpoint == 'all' or (checkpoint == 'last' and last_epoch):  # noqa: E501
+                state = {
+                    'epoch': epoch,
+                    'arch': arch,
+                    'model': model.state_dict(),
+                    'accuracy': valid_acc,
+                    'optimizer': optimizer.state_dict()
+                }
+            if is_best:
+                print('New best model!')
+                filename = os.path.join(run_dir, 'checkpoint_best_model.t7')
+                print(f'Saving checkpoint to {filename}')
+                best_accuracy = valid_acc
+                torch.save(state, filename)
+            if checkpoint == 'all' or (checkpoint == 'last' and last_epoch):
+                filename = os.path.join(run_dir, f'checkpoint_{epoch}.t7')
+                print(f'Saving checkpoint to {filename}')
+                torch.save(state, filename)
+
+        start_epoch = end_epoch
+
+
 @click.command()
 @click.argument('dataset', type=click.Choice(DATASETS.keys()),
                 default='amazon_review_full')
@@ -210,7 +262,6 @@ def create_train_dataset(dataset, dataset_dir, transform):
 @click.option('--checkpoint', '-c', type=click.Choice(['best', 'all', 'last']),
               default='last')
 @click.option('--restore', '-r')
-@click.option('--tracking/--no-tracking', default=True)
 @click.option('--track-test-acc/--no-track-test-acc', default=True)
 @click.option('--cuda/--no-cuda', default=True)
 @click.option('--epochs', '-e', multiple=True, default=[3, 3, 3, 3, 3],
@@ -229,8 +280,8 @@ def create_train_dataset(dataset, dataset_dir, transform):
 @click.option('--shuffle/--no-shuffle', default=True)
 @click.option('--arch', '-a', type=click.Choice(MODELS.keys()),
               default='vdcnn9-maxpool')
-def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
-          cuda, epochs, batch_size, learning_rates, momentum, optimizer,
+def train(dataset, dataset_dir, checkpoint, restore, track_test_acc, cuda,
+          epochs, batch_size, learning_rates, momentum, optimizer,
           device_ids, num_workers, weight_decay, validation, evaluate, shuffle,
           arch):
     timestamp = "{:.0f}".format(datetime.utcnow().timestamp())
@@ -265,15 +316,6 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
 
     utils.save_config(config, run_dir)
 
-    if tracking:
-        train_results_file = os.path.join(run_dir, 'train_results.csv')
-        valid_results_file = os.path.join(run_dir, 'valid_results.csv')
-        test_results_file = os.path.join(run_dir, 'test_results.csv')
-    else:
-        train_results_file = None
-        valid_results_file = None
-        test_results_file = None
-
     # create loss
     criterion = nn.CrossEntropyLoss()
 
@@ -297,7 +339,7 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
     if evaluate:
         print("Only running evaluation of model on test dataset")
         run(start_epoch - 1, model, test_loader, device,
-            tracking=test_results_file, train=False)
+            tracking=os.path.join(run_dir, 'test_results.csv'), train=False)
         return
 
     # load data
@@ -333,48 +375,23 @@ def train(dataset, dataset_dir, checkpoint, restore, tracking, track_test_acc,
         print('Using test dataset for validation')
         valid_loader = test_loader
 
-    for nepochs, learning_rate in zip(epochs, learning_rates):
-        end_epoch = start_epoch + nepochs
-        for group in optimizer.param_groups:
-            group['lr'] = learning_rate
-        _lr_optimizer = utils.get_learning_rate(optimizer)
-        if _lr_optimizer is not None:
-            print('Learning rate set to {}'.format(_lr_optimizer))
-            assert _lr_optimizer == learning_rate
-
-        for epoch in range(start_epoch, end_epoch):
-            run(epoch, model, train_loader, device, criterion, optimizer,
-                tracking=train_results_file, train=True)
-
-            valid_acc = run(epoch, model, valid_loader, device,
-                            tracking=valid_results_file, train=False)
-
-            if validation != 0 and track_test_acc:
-                run(epoch, model, test_loader, device,
-                    tracking=test_results_file, train=False)
-
-            is_best = valid_acc > best_accuracy
-            last_epoch = epoch == (end_epoch - 1)
-            if is_best or checkpoint == 'all' or (checkpoint == 'last' and last_epoch):  # noqa: E501
-                state = {
-                    'epoch': epoch,
-                    'arch': arch,
-                    'model': (model.module if use_cuda else model).state_dict(),  # noqa: E501
-                    'accuracy': valid_acc,
-                    'optimizer': optimizer.state_dict()
-                }
-            if is_best:
-                print('New best model!')
-                filename = os.path.join(run_dir, 'checkpoint_best_model.t7')
-                print(f'Saving checkpoint to {filename}')
-                best_accuracy = valid_acc
-                torch.save(state, filename)
-            if checkpoint == 'all' or (checkpoint == 'last' and last_epoch):
-                filename = os.path.join(run_dir, f'checkpoint_{epoch}.t7')
-                print(f'Saving checkpoint to {filename}')
-                torch.save(state, filename)
-
-        start_epoch = end_epoch
+    return _train(
+        model=model,
+        optimizer=optimizer,
+        criterion=criterion,
+        device=device,
+        train_loader=train_loader,
+        valid_loader=valid_loader,
+        test_loader=test_loader,
+        start_epoch=start_epoch,
+        epochs=epochs,
+        learning_rates=learning_rates,
+        track_test_acc=track_test_acc,
+        checkpoint=checkpoint,
+        best_accuracy=best_accuracy,
+        run_dir=run_dir,
+        arch=arch
+    )
 
 
 if __name__ == '__main__':
