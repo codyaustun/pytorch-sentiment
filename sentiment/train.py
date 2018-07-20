@@ -110,7 +110,7 @@ def run(epoch, model, loader, device, criterion=None, optimizer=None,
                 result['batch'] = batch_index
                 result['batch_size'] = batch_size
                 for i, k in enumerate(top):
-                    result['top{}_correct'.format(k)] = top_correct[i]
+                    result['top{}_correct'.format(k)] = top_correct[i].item()
                     result['top{}_accuracy'.format(k)] = accuracies[i].val
                 if train:
                     result['loss'] = loss.item()
