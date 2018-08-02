@@ -206,7 +206,8 @@ def create_train_dataset(dataset, dataset_dir, transform):
 def _train(model, optimizer, criterion, device,
            train_loader, valid_loader, test_loader,
            start_epoch, epochs, learning_rates,
-           track_test_acc, checkpoint, best_accuracy, run_dir, arch):
+           track_test_acc, checkpoint, best_accuracy, run_dir, arch,
+           use_cuda):
     train_results_file = os.path.join(run_dir, 'train_results.csv')
     valid_results_file = os.path.join(run_dir, 'valid_results.csv')
     test_results_file = os.path.join(run_dir, 'test_results.csv')
@@ -237,7 +238,7 @@ def _train(model, optimizer, criterion, device,
                 state = {
                     'epoch': epoch,
                     'arch': arch,
-                    'model': model.state_dict(),
+                    'model': (model.module if use_cuda else model).state_dict(),  # noqa: E501
                     'accuracy': valid_acc,
                     'optimizer': optimizer.state_dict()
                 }
@@ -390,7 +391,8 @@ def train(dataset, dataset_dir, checkpoint, restore, track_test_acc, cuda,
         checkpoint=checkpoint,
         best_accuracy=best_accuracy,
         run_dir=run_dir,
-        arch=arch
+        arch=arch,
+        use_cuda=use_cuda
     )
 
 
