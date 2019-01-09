@@ -1,5 +1,6 @@
 import os
 import abc
+import gzip
 from abc import ABCMeta
 
 import pandas as pd
@@ -149,3 +150,73 @@ class YelpReviewFull(XiangZhangDataset):
 
 class YelpReviewPolarity(YelpReviewFull):
     dirname = "yelp_review_polarity_csv"
+
+
+def parse(path):
+    with gzip.open(path, 'rb') as file:
+        for line in file:
+            yield eval(line)
+
+
+class AmazonProductReviews(data.Dataset):
+
+    def __init__(self, root, transform=None, target_transform=None):
+        self.root = os.path.expanduser(root)
+        self.transform = transform
+        self.target_transform = target_transform
+
+        self.data, self.labels = self.load_data()
+
+        self._classes = None
+
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
+
+        Returns:
+            tuple: (doc, target) where target is index of the target class.
+        """
+        doc, target = self.data[index], self.labels[index]
+
+        if self.transform is not None:
+            doc = self.transform(doc)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return doc, target
+
+    def __len__(self):
+        return len(self.data)
+
+    def __repr__(self):
+        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
+        fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
+        fmt_str += '    Root Location: {}\n'.format(self.root)
+        tmp = '    Transforms (if any): '
+        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))  # noqa: E501
+        tmp = '    Target Transforms (if any): '
+        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))  # noqa: E501
+        return fmt_str
+
+    def load_data(self):
+        keep = ('overall', 'summary', 'reviewText')
+        records = []
+        for raw_record in parse(self.root):
+            record = {key: raw_record[key] for key in keep}
+            records.append(record)
+
+        df = pd.DataFrame.from_records(records)
+        labels = (df['overall'] - df['overall'].min()).astype(np.int64)
+        data = (df['summary']
+                .str
+                .cat([df['reviewText']], sep=" ")
+                .values)
+        return data, labels
+
+    @property
+    def classes(self):
+        if self._classes is None:
+            self._classes = len(set(self.train_labels)) if self.train else len(set(self.test_labels))  # noqa: E501
+        return self._classes
