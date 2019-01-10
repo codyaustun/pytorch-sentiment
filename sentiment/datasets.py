@@ -218,5 +218,5 @@ class AmazonProductReviews(data.Dataset):
     @property
     def classes(self):
         if self._classes is None:
-            self._classes = len(set(self.train_labels)) if self.train else len(set(self.test_labels))  # noqa: E501
+            self._classes = len(set(self.labels))
         return self._classes
