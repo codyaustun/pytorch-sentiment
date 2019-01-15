@@ -24,6 +24,7 @@ DATASETS = {
     'yahoo_answers': datasets.YahooAnswers,
     'yelp_review_full': datasets.YelpReviewFull,
     'yelp_review_polarity': datasets.YelpReviewPolarity,
+    'amazon': datasets.AmazonProductReviews,
 }
 
 MODELS = {

@@ -113,12 +113,16 @@ class XiangZhangDataset(TextClassification):
         pass
 
 
-class AmazonReviewPolarity(XiangZhangDataset):
-    dirname = "amazon_review_polarity_csv"
+class AmazonProductReviews(XiangZhangDataset):
+    dirname = ""
     columns = ['rating', 'subject', 'body']
 
 
-class AmazonReviewFull(AmazonReviewPolarity):
+class AmazonReviewPolarity(AmazonProductReviews):
+    dirname = "amazon_review_polarity_csv"
+
+
+class AmazonReviewFull(AmazonProductReviews):
     dirname = "amazon_review_full_csv"
 
 
@@ -158,7 +162,7 @@ def parse(path):
             yield eval(line)
 
 
-class AmazonProductReviews(data.Dataset):
+class GZIPAmazonProductReviews(data.Dataset):
 
     def __init__(self, root, transform=None, target_transform=None):
         self.root = os.path.expanduser(root)
