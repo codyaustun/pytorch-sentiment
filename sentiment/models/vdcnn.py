@@ -235,6 +235,13 @@ def VDCNN9MaxPool(num_classes=5, shortcut=False, bias=False):
                  num_classes=num_classes, shortcut=shortcut, bias=bias)
 
 
+def VDCNN9MaxPoolLite(num_classes=5, shortcut=False, bias=False):
+    return VDCNN(MaxPoolBlock, blocks=[1, 1, 1, 1],
+                 filters=[16, 32, 64, 128],
+                 num_hidden=512,
+                 num_classes=num_classes, shortcut=shortcut, bias=bias)
+
+
 def VDCNN9KMaxPool(num_classes=5, shortcut=False, bias=False):
     return VDCNN(KMaxPoolBlock, blocks=[1, 1, 1, 1],
                  filters=[64, 128, 256, 512],
