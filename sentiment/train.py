@@ -31,6 +31,7 @@ MODELS = {
     'vdcnn9-conv': vdcnn.VDCNN9Conv,
     'vdcnn9-conv-shortcut': lambda num_classes=5: vdcnn.VDCNN9Conv(num_classes=num_classes, shortcut=True),  # noqa: E501
     'vdcnn9-maxpool': vdcnn.VDCNN9MaxPool,
+    'vdcnn9-maxpool-lite': vdcnn.VDCNN9MaxPoolLite,
     'vdcnn9-maxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN9MaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
     'vdcnn9-kmaxpool': vdcnn.VDCNN9KMaxPool,
     'vdcnn9-kmaxpool-shortcut': lambda num_classes=5: vdcnn.VDCNN9KMaxPool(num_classes=num_classes, shortcut=True),  # noqa: E501
